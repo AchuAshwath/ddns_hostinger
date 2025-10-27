@@ -1,0 +1,3 @@
+requests==2.31.0
+hostinger-api==0.0.19
+python-dotenv==1.0.0
