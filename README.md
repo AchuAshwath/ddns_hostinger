@@ -289,6 +289,55 @@ Add more verbose output by checking the full log:
 tail -50 /home/username/hostinger-ddns-python.log | grep -i error
 ```
 
+### Testing the Cron Job (Manually Trigger DNS Update)
+
+To test that your cron job is working correctly, you can manually change the cached IP to force an update:
+
+#### View Current Cached IP
+```bash
+cat /tmp/hostinger-ddns-python-last-ip.txt
+```
+
+#### Clear the Cache (Force Update on Next Run)
+```bash
+rm /tmp/hostinger-ddns-python-last-ip.txt
+```
+This removes the cached IP file, forcing the script to update DNS on the next execution (even if IP hasn't changed).
+
+#### Manually Set a Different IP (To Test Update)
+```bash
+echo "192.168.1.100" > /tmp/hostinger-ddns-python-last-ip.txt
+```
+This makes the script think the last IP was `192.168.1.100`. When the cron job runs, it will detect a "change" and update your DNS.
+
+#### Full Testing Workflow
+```bash
+# 1. Check current IP
+curl https://ifconfig.me
+
+# 2. Clear cache to force next update
+rm /tmp/hostinger-ddns-python-last-ip.txt
+
+# 3. Run script manually to see it update
+source venv/bin/activate
+python hostinger_ddns.py
+
+# 4. Check the log to confirm success
+tail -5 /home/username/hostinger-ddns-python.log
+
+# 5. Verify the new IP is cached
+cat /tmp/hostinger-ddns-python-last-ip.txt
+```
+
+**Expected Log Output on Update:**
+```
+[2025-10-27 22:30:01] INFO: Script started.
+[2025-10-27 22:30:02] INFO: IP change detected. Current IP: 49.47.218.86, Last IP: None.
+[2025-10-27 22:30:02] ACTION: Sending update request to Hostinger API for vpn.example.com -> 49.47.218.86
+[2025-10-27 22:30:03] SUCCESS: Hostinger API accepted update for vpn.example.com to 49.47.218.86
+[2025-10-27 22:30:03] INFO: Script finished. Update successful.
+```
+
 ---
 
 ## How It Works
